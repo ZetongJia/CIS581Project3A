@@ -25,11 +25,11 @@ def feat_desc(img, x, y):
   edges = filters.sobel(img)
   
   for i in range(N):
-    y_temp = np.arange(y[i]-19, y[i]+21, 1)
-    y_i = np.tile(y_temp,(40,1))
     x_temp = np.arange(x[i]-19, x[i]+21, 1)
-    x_temp = x_temp.reshape(-1,1)
-    x_i = np.tile(x_temp,(1,40))
+    x_i = np.tile(x_temp,(40,1))
+    y_temp = np.arange(y[i]-19, y[i]+21, 1)
+    y_temp = y_temp.reshape(-1,1)
+    y_i = np.tile(y_temp,(1,40))
     interp = interp2(edges, x_i, y_i)
     final = np.zeros((320,5))
     final[0:40,0:5] = interp[0:40, 0:5]
