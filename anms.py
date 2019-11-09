@@ -15,6 +15,11 @@
     - Output rmax: suppression radius used to get max pts corners.
 '''
 
+import numpy as np
+from scipy.spatial import distance
+from corner_detector import *
+import matplotlib.pyplot as plt
+
 def flatten(x,y,c):
 	return x*c+y
 
