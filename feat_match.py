@@ -20,18 +20,23 @@ from helpers import dist2
 from helpers import sort2
 
 def feat_match(descs1, descs2):
-#  [c,N1] = descs1.shape
-#  flann = pyflann.FLANN()
-#  result, dists = flann.nn(
-#      np.transpose(descs2), np.transpose(descs1), 2, algorithm="kmeans", branching=32, iterations=7, checks=16)
-#  match = np.zeros((N1, 1))
-#  match = result[:,0]
-#  match[dists[:,0]/dists[:,1] > 0.8] = -1
+# Method 1
     dist = dist2(descs1,descs2)
     ord_dist,index = sort2(dist)
     ratio = ord_dist[:,0]/(ord_dist[:,1] + 1e-10)
     thresh = 0.5
     match = index[:,0].astype(np.int32)
     match[ratio > thresh] = -1
-
     return match
+
+# =============================================================================
+# # Method 2
+#     [c,N1] = descs1.shape
+#     flann = pyflann.FLANN()
+#     result, dists = flann.nn(
+#       np.transpose(descs2), np.transpose(descs1), 2, algorithm="kmeans", branching=32, iterations=7, checks=16)
+#     match = np.zeros((N1, 1))
+#     match = result[:,0]
+#     match[dists[:,0]/dists[:,1] > 0.8] = -1
+#     return match
+# =============================================================================
