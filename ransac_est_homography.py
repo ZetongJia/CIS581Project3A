@@ -35,7 +35,7 @@ def ransac_est_homography(x1, y1, x2, y2, thresh):
       h = est_homography(src_x, src_y, tar_x, tar_y)
 #      h = est_homography(tar_x, tar_y, src_x, src_y)
       src_warp = np.dot(h,src_P)
-      src_warp[src_warp==0] = 1e-6
+      src_warp[2,src_warp[2,:]==0] = 1e-10
       src_warp[0,:] = src_warp[0,:] / src_warp[2,:]
       src_warp[1,:] = src_warp[1,:] / src_warp[2,:]
       error = np.sqrt((src_warp[0,:] - tar_P[0,:])**2 + (src_warp[1,:] - tar_P[1,:])**2)

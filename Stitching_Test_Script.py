@@ -53,14 +53,14 @@ if __name__ == "__main__":
     xA,yA = xA[match>0].reshape(-1,1),yA[match>0].reshape(-1,1)
     xB,yB = xB[match[match>0]].reshape(-1,1),yB[match[match>0]].reshape(-1,1)
     
-    thresh = 0.5
+    thresh = 10
     H,inlier_ind = ransac_est_homography(xA, yA, xB, yB, thresh)
     
-#    IA = cv.imread(imgA_name)
-#    drawPoints(IA,xA,yA)
-#    cv.imshow('IA',IA)
-#    IB = cv.imread(imgB_name)
-#    drawPoints(IB,xB,yB)
-#    cv.imshow('IB',IB)
-#    cv.waitKey(0)
+    IA = cv.imread(imgA_name)
+    drawPoints(IA,xA,yA)
+    cv.imshow('IA',IA)
+    IB = cv.imread(imgB_name)
+    drawPoints(IB,xB,yB)
+    cv.imshow('IB',IB)
+    cv.waitKey(0)
     
