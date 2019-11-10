@@ -16,49 +16,39 @@
 '''
 
 import numpy as np
-from scipy.spatial import distance
-from corner_detector import *
-import matplotlib.pyplot as plt
 
-def flatten(x,y,c):
-	return x*c+y
+from helpers import localMax
 
 def anms(cimg, max_pts):
-	thres = 0.9
-	w,h = cimg.shape
-	min_radius = np.zeros((w*h,w*h))
-	min_dist = []
-	for xi in range(w):
-		for yi in range(h):
-			for xj in range(w):
-				for yj in range(h):
-					if (xi,yi) != (xj,yj) and cimg[xi,yi] < thres * cimg[xj,yj]:
-						dist = distance.euclidean((xi,yi),(xj,yj))
-						pi = flatten(xi,yi)
-						pj = flatten(xj,yj)
-						if dist < min_radius[pi,pj] or min_radius[pi,pj] == 0:
-							min_radius[pi,pj] = dist
-							min_dist.append((xi,yi,dist))
-	min_dist.sort(key=lambda x:x[2], reverse=True)
-	top_pts = min_dist[:max_pts]
-	x = [x for (x,_,_) in top_pts]
-	y = [y for (_,y,_) in top_pts]
-	rmax = [r for (_,_,r) in top_pts]
-	print(x)
-	print(y)
-	print(rmax)
-	return x,y,rmax
-
-# # test
-# cimg = np.random.rand(5,10)
-# anms(cimg, 8)
-
-# # test
-# I = np.array(Image.open('left.jpg').convert('RGB'))
-# cimg = corner_detector(I)
-# print(cimg.shape)
-# x,y,rmax = anms(cimg, 50)
-
-# plt.imshow('left.jpg')
-# plt.scatter(x,y)
-# plt.show()
+  # Your Code Here
+#  cimg[0:20],cimg[-1:-21:-1],cimg[:,0:20],cimg[:,-1:-21:-1] = 0,0,0,0;
+#  y_ind,x_ind = np.where((cimg==localMax(cimg,5,5))*(cimg>0))
+#  val = cimg[(cimg==localMax(cimg,5,5))*(cimg>0)]
+  thresh = 0.012*cimg.max()
+  y_ind,x_ind = np.where(cimg>thresh)
+  val = cimg[cimg>thresh]
+  
+  if x_ind.size < max_pts:
+    x,y = x_ind,y_ind
+    rmax = 999999
+    return x,y,rmax
+  
+  radius = np.zeros((x_ind.size,1))
+  c = 0.9
+  max_val = c * val.max()
+  for i in range(x_ind.size):
+    if val[i] > max_val:
+      radius[i] = 999999
+      continue
+    else:
+      dist = np.sqrt((x_ind - x_ind[i])**2 + (y_ind - y_ind[i])**2)
+      dist = dist[val * c > val[i]]
+      radius[i] = dist.min()
+  radius = radius.reshape(-1)
+  index = np.argsort(-radius)
+  index = index[0:max_pts]
+  
+  x,y = x_ind[index].reshape(-1,1),y_ind[index].reshape(-1,1)
+  rmax = radius[index[-1]]
+  
+  return x, y, rmax

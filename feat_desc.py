@@ -17,10 +17,10 @@
 import numpy as np
 from skimage import filters
 from sklearn import preprocessing
-from interp import interp2
+from helpers import interp2
 
 def feat_desc(img, x, y):
-  [N] = x.shape
+  N = x.size
   descs = np.zeros((64, N))
   edges = filters.sobel(img)
   
