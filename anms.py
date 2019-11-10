@@ -21,7 +21,7 @@ from helpers import localMax
 
 def anms(cimg, max_pts):
   # Your Code Here
-#  cimg[0:20],cimg[-1:-21:-1],cimg[:,0:20],cimg[:,-1:-21:-1] = 0,0,0,0;
+  cimg[0:20],cimg[-1:-21:-1],cimg[:,0:20],cimg[:,-1:-21:-1] = 0,0,0,0;
 #  y_ind,x_ind = np.where((cimg==localMax(cimg,5,5))*(cimg>0))
 #  val = cimg[(cimg==localMax(cimg,5,5))*(cimg>0)]
   thresh = 0.012*cimg.max()

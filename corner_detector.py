@@ -23,11 +23,12 @@ from helpers import GaussianPDF_2D
 
 def corner_detector(img):
   # Your Code Here 
-     img = np.float32(img) 
-     cimg = cv.cornerHarris(img,3,5,0.05)
-     return cimg
+# Filter Method 1
+    img = np.float32(img) 
+    cimg = cv.cornerHarris(img,3,5,0.06)
+    return cimg
 # =============================================================================
-#   Filter Method 2
+# # Filter Method 2
 #     img = ndimage.gaussian_filter(img, sigma = 7);
 #     sobel = np.array([[1,2,1],[0,0,0],[-1,-2,-1]])
 #    
@@ -42,20 +43,20 @@ def corner_detector(img):
 # =============================================================================
   
 # =============================================================================
-#    Filter Method 3
-#   G1 = GaussianPDF_2D(0,7,4,4)
-#   [dx,dy] =  np.gradient(G1, axis = (1,0))
-#   Ix = signal.convolve2d(img,dx,'same')
-#   Iy = signal.convolve2d(img,dy,'same')
-#   G2 = GaussianPDF_2D(0,2,4,4)
-#   Ix2 = signal.convolve2d(Ix**2,G2,'same')
-#   Iy2 = signal.convolve2d(Iy**2,G2,'same')
-#   Ixy = signal.convolve2d(Ix*Iy,G2,'same')
-# ============================================================================= 
-   
+# # Filter Method 3
+#     G1 = GaussianPDF_2D(0,7,4,4)
+#     [dx,dy] =  np.gradient(G1, axis = (1,0))
+#     Ix = signal.convolve2d(img,dx,'same')
+#     Iy = signal.convolve2d(img,dy,'same')
+#     G2 = GaussianPDF_2D(0,2,4,4)
+#     Ix2 = signal.convolve2d(Ix**2,G2,'same')
+#     Iy2 = signal.convolve2d(Iy**2,G2,'same')
+#     Ixy = signal.convolve2d(Ix*Iy,G2,'same')
+# =============================================================================
    
 # =============================================================================
-#   R Method 2
-#   cimg = (Ix2*Iy2 - Ixy**2)/(Ix2 + Iy2 + 1e-10);
+# # R Method 2
+#     cimg = (Ix2*Iy2 - Ixy**2)/(Ix2 + Iy2 + 1e-10);
+#     return cimg
 # =============================================================================
     
