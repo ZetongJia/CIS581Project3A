@@ -9,6 +9,7 @@ import numpy as np
 from scipy import signal
 import matplotlib.pyplot as plt
 from PIL import Image
+from scipy.ndimage import geometric_transform
 
 
 #  Generate one dimension Gaussian distribution
@@ -115,6 +116,56 @@ def interp2(v, xq, yq):
 		return interp_val.reshape(q_h, q_w)
 	return interp_val
 
+def interp2_general(v, xq, yq):
+    if len(xq.shape) == 2 or len(yq.shape) == 2:
+        dim_input = 2
+        q_h = xq.shape[0]
+        q_w = xq.shape[1]
+        xq = xq.flatten()
+        yq = yq.flatten()
+    
+    h = v.shape[0]
+    w = v.shape[1]
+    if xq.shape != yq.shape:
+        raise 'query coordinates Xq Yq should have same shape'
+    
+    x_floor = np.floor(xq).astype(np.int32)
+    y_floor = np.floor(yq).astype(np.int32)
+    x_ceil = np.ceil(xq).astype(np.int32)
+    y_ceil = np.ceil(yq).astype(np.int32)
+
+    left = min([min(x_floor),0])
+    right = max([max(x_ceil),w])
+    top = min([min(y_floor),0])
+    bottom = max([max(y_ceil),h])
+    
+    newH = bottom - top + 1
+    newW = right - left + 1
+    X,Y = np.meshgrid(np.arange(left,right),np.arange(top,bottom))
+    V = np.zeros((newH,newW),dtype = np.int32)
+    yy,xx = np.where((X>=0)*(X<w)*(Y>=0)*(Y<h))
+    V[min(yy):max(yy)+1,min(xx):max(xx)+1] = v
+    
+    V1 = V[y_floor, x_floor]
+    V2 = V[y_floor, x_ceil]
+    V3 = V[y_ceil, x_floor]
+    V4 = V[y_ceil, x_ceil]
+
+    lh = yq - y_floor
+    lw = xq - x_floor
+    hh = 1 - lh
+    hw = 1 - lw
+    
+    w1 = hh * hw
+    w2 = hh * lw
+    w3 = lh * hw
+    w4 = lh * lw
+    
+    interp_val = w1 * V1 + w2 * V2 + w3 * V3 + w4 * V4
+    if dim_input == 2:
+        return interp_val.reshape(q_h, q_w)
+    return interp_val
+
 def drawPoints(img,x,y):
     x,y = x.reshape(-1),y.reshape(-1)
     for i in range(x.size):
@@ -153,6 +204,7 @@ def getNewSize(H1, H2, image_A, image_B, image_C):
     h_middle,w_middle,_ = image_B.shape
     h_right,w_right,_ = image_C.shape
     
+# Warp Left Picture    
     [X_left, Y_left] = np.meshgrid(np.arange(w_left),np.arange(h_left))
     coor_left = np.ones((3,h_left*w_left))
     coor_left[0,:] = np.reshape(X_left, (1,h_left*w_left))
@@ -160,7 +212,8 @@ def getNewSize(H1, H2, image_A, image_B, image_C):
     coor_left_new = np.linalg.solve(H1, coor_left)
     coor_left_new[0,:] = np.divide(coor_left_new[0,:],coor_left_new[2,:])
     coor_left_new[1,:] = np.divide(coor_left_new[1,:],coor_left_new[2,:])
-
+    
+# Warp Right Picture 
     [X_right, Y_right] = np.meshgrid(np.arange(w_right),np.arange(h_right))
     coor_right = np.ones((3,h_right*w_right))
     coor_right[0,:] = np.reshape(X_right, (1,h_right*w_right))
@@ -168,13 +221,18 @@ def getNewSize(H1, H2, image_A, image_B, image_C):
     coor_right_new = np.linalg.solve(H2, coor_right);
     coor_right_new[0,:] = np.divide(coor_right_new[0,:],coor_right_new[2,:])
     coor_right_new[1,:] = np.divide(coor_right_new[1,:],coor_right_new[2,:])
-
+    
+# Decide New Image Size
     new_left = np.fix(np.min(coor_left_new[0,:]))
     new_right = np.fix(np.max(coor_right_new[0,:]))
-    new_top = np.fix(np.min([0,np.min(coor_left_new[1,:])\
-                                    , np.min(coor_right_new[1,:])]))
-    new_bottom = np.fix(np.max([h_middle,np.max(coor_left_new[1,:])\
+    new_top = np.fix(np.min([np.min(coor_left_new[1,:]),0\
+                                    ,np.min(coor_right_new[1,:])]))
+#    top_ind = np.argsort(-[np.min(coor_left_new[1,:]),0\
+#                                    ,np.min(coor_right_new[1,:])])[0]
+    new_bottom = np.fix(np.max([np.max(coor_left_new[1,:]),h_middle\
                                     , np.max(coor_right_new[1,:])]))
+#    bottom_ind = np.argsort(-[np.max(coor_left_new[1,:]),h_middle\
+#                                    ,np.max(coor_right_new[1,:])])[0]
 
     newH = int(new_bottom - new_top + 1)
     newW = int(new_right - new_left + 1)
@@ -186,6 +244,13 @@ def getNewSize(H1, H2, image_A, image_B, image_C):
     x_new_right = int(x_new_middle+np.fix(np.min(coor_right_new[0,:])))
     y_new_right = int(y_new_middle+np.fix(np.min(coor_right_new[1,:])))
     
+# Middle Image      
+    newImageMiddle = np.zeros((newH,newW,3))
+    newImageMiddle[y_new_middle:y_new_middle+h_middle\
+                   , x_new_middle: x_new_middle+w_middle,:] = image_B
+    newImageMiddle = newImageMiddle.astype(np.uint8)
+    
+# Left Image
     [X_left, Y_left] = np.meshgrid(np.arange(w_left),np.arange(h_left))
     [XX,YY] = np.meshgrid(np.arange(x_new_left,x_new_left+newW)\
                 , np.arange(y_new_left,y_new_left+newH))
@@ -195,33 +260,28 @@ def getNewSize(H1, H2, image_A, image_B, image_C):
     AA = np.dot(H1,AA)
     XX = np.reshape(np.divide(AA[0,:],AA[2,:]), (newH, newW))
     YY = np.reshape(np.divide(AA[1,:],AA[2,:]), (newH, newW))
-# INTERPOLATION, WARP IMAGE A INTO NEW IMAGE
     newImageLeft = np.zeros((newH, newW, 3))
-    newImageLeft[:,:,0] = interp2(image_A[:,:,0].astype(np.double), XX, YY)
-    newImageLeft[:,:,1] = interp2(image_A[:,:,1].astype(np.double), XX, YY)
-    newImageLeft[:,:,2] = interp2(image_A[:,:,2].astype(np.double), XX, YY)
+    newImageLeft[:,:,0] = interp2_general(image_A[:,:,0].astype(np.double), XX, YY)
+    newImageLeft[:,:,1] = interp2_general(image_A[:,:,1].astype(np.double), XX, YY)
+    newImageLeft[:,:,2] = interp2_general(image_A[:,:,2].astype(np.double), XX, YY)
     newImageLeft = newImageLeft.astype(np.uint8)
     
+# Right Image    
     [X_right, Y_right] = np.meshgrid(np.arange(w_right),np.arange(h_right))
-    [XX,YY] = np.meshgrid(np.arange(x_new_right,x_new_right+newW)\
-                , np.arange(y_new_right,y_new_right+newH))
+    [XX,YY] = np.meshgrid(np.arange(x_new_left,x_new_left+newW)\
+                , np.arange(y_new_left,y_new_left+newH))
     AA = np.ones((3,newH*newW))
     AA[0,:] = np.reshape(XX,(1,newH*newW))
     AA[1,:] = np.reshape(YY,(1,newH*newW))
     AA = np.dot(H2,AA)
     XX = np.reshape(np.divide(AA[0,:],AA[2,:]), (newH, newW))
     YY = np.reshape(np.divide(AA[1,:],AA[2,:]), (newH,newW))
-# INTERPOLATION, WARP IMAGE A INTO NEW IMAGE
-    newImageRight = np.zeros((newH,newW, 3))
-    newImageRight[:,:,0] = interp2(image_C[:,:,0].astype(np.double), XX, YY)
-    newImageRight[:,:,1] = interp2(image_C[:,:,1].astype(np.double), XX, YY)
-    newImageRight[:,:,2] = interp2(image_C[:,:,2].astype(np.double), XX, YY)
-    newImageRight = newImageRight.astype(np.uint8)
     
-    newImageMiddle = np.zeros((newH,newW,3))
-    newImageMiddle[y_new_middle:y_new_middle+h_middle\
-                   , x_new_middle: x_new_middle+w_middle,:] = image_B
-    newImageMiddle = newImageMiddle.astype(np.uint8)
+    newImageRight = np.zeros((newH,newW, 3))
+    newImageRight[:,:,0] = interp2_general(image_C[:,:,0].astype(np.double), XX, YY)
+    newImageRight[:,:,1] = interp2_general(image_C[:,:,1].astype(np.double), XX, YY)
+    newImageRight[:,:,2] = interp2_general(image_C[:,:,2].astype(np.double), XX, YY)
+    newImageRight = newImageRight.astype(np.uint8)
     
     Image.fromarray(newImageLeft).save('new_left.jpg')
     Image.fromarray(newImageMiddle).save('new_middle.jpg')

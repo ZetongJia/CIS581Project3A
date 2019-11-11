@@ -78,19 +78,19 @@ def mymosaic(img_input):
 #    output = blend(newImageRight,blend(newImageLeft,newImageMiddle))
 #    img_mosaic = output
         
-#    IA1 = cv.imread('left_small.jpg')
+#    IA1 = cv.imread('franklin_left_small.jpg')
 #    drawPoints(IA1,xA1,yA1)
 #    cv.imshow('IA1',IA1)
 #    
-#    IB1 = cv.imread('middle_small.jpg')
+#    IB1 = cv.imread('franklin_middle_small.jpg')
 #    drawPoints(IB1,xB1,yB1)
 #    cv.imshow('IB1',IB1)
 #    
-#    IB2 = cv.imread('middle_small.jpg')
+#    IB2 = cv.imread('franklin_middle_small.jpg')
 #    drawPoints(IB2,xB2,yB2)
 #    cv.imshow('IB2',IB2)
 #    
-#    IC2 = cv.imread('right_small.jpg')
+#    IC2 = cv.imread('franklin_right_small.jpg')
 #    drawPoints(IC2,xC2,yC2)
 #    cv.imshow('IC2',IC2)
 #    
