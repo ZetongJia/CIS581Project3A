@@ -8,6 +8,7 @@ import cv2 as cv
 import numpy as np
 from scipy import signal
 import matplotlib.pyplot as plt
+from PIL import Image
 
 
 #  Generate one dimension Gaussian distribution
@@ -146,3 +147,102 @@ def sort2(A):
         val[i] = sorted(A[i])
         ind[i] = np.argsort(A[i])
     return val,ind  
+
+def getNewSize(H1, H2, image_A, image_B, image_C):
+    h_left,w_left,_ = image_A.shape
+    h_middle,w_middle,_ = image_B.shape
+    h_right,w_right,_ = image_C.shape
+    
+    [X_left, Y_left] = np.meshgrid(np.arange(w_left),np.arange(h_left))
+    coor_left = np.ones((3,h_left*w_left))
+    coor_left[0,:] = np.reshape(X_left, (1,h_left*w_left))
+    coor_left[1,:] = np.reshape(Y_left, (1,h_left*w_left))
+    coor_left_new = np.linalg.solve(H1, coor_left)
+    coor_left_new[0,:] = np.divide(coor_left_new[0,:],coor_left_new[2,:])
+    coor_left_new[1,:] = np.divide(coor_left_new[1,:],coor_left_new[2,:])
+
+    [X_right, Y_right] = np.meshgrid(np.arange(w_right),np.arange(h_right))
+    coor_right = np.ones((3,h_right*w_right))
+    coor_right[0,:] = np.reshape(X_right, (1,h_right*w_right))
+    coor_right[1,:] = np.reshape(Y_right, (1,h_right*w_right))
+    coor_right_new = np.linalg.solve(H2, coor_right);
+    coor_right_new[0,:] = np.divide(coor_right_new[0,:],coor_right_new[2,:])
+    coor_right_new[1,:] = np.divide(coor_right_new[1,:],coor_right_new[2,:])
+
+    new_left = np.fix(np.min(coor_left_new[0,:]))
+    new_right = np.fix(np.max(coor_right_new[0,:]))
+    new_top = np.fix(np.min([0,np.min(coor_left_new[1,:])\
+                                    , np.min(coor_right_new[1,:])]))
+    new_bottom = np.fix(np.max([h_middle,np.max(coor_left_new[1,:])\
+                                    , np.max(coor_right_new[1,:])]))
+
+    newH = int(new_bottom - new_top + 1)
+    newW = int(new_right - new_left + 1)
+
+    x_new_left = int(new_left)
+    y_new_left = int(new_top)
+    x_new_middle = -int(new_left)
+    y_new_middle = -int(new_top)
+    x_new_right = int(x_new_middle+np.fix(np.min(coor_right_new[0,:])))
+    y_new_right = int(y_new_middle+np.fix(np.min(coor_right_new[1,:])))
+    
+    [X_left, Y_left] = np.meshgrid(np.arange(w_left),np.arange(h_left))
+    [XX,YY] = np.meshgrid(np.arange(x_new_left,x_new_left+newW)\
+                , np.arange(y_new_left,y_new_left+newH))
+    AA = np.ones((3,newH*newW))
+    AA[0,:] = np.reshape(XX,(1,newH*newW))
+    AA[1,:] = np.reshape(YY,(1,newH*newW))
+    AA = np.dot(H1,AA)
+    XX = np.reshape(np.divide(AA[0,:],AA[2,:]), (newH, newW))
+    YY = np.reshape(np.divide(AA[1,:],AA[2,:]), (newH, newW))
+# INTERPOLATION, WARP IMAGE A INTO NEW IMAGE
+    newImageLeft = np.zeros((newH, newW, 3))
+    newImageLeft[:,:,0] = interp2(image_A[:,:,0].astype(np.double), XX, YY)
+    newImageLeft[:,:,1] = interp2(image_A[:,:,1].astype(np.double), XX, YY)
+    newImageLeft[:,:,2] = interp2(image_A[:,:,2].astype(np.double), XX, YY)
+    newImageLeft = newImageLeft.astype(np.uint8)
+    
+    [X_right, Y_right] = np.meshgrid(np.arange(w_right),np.arange(h_right))
+    [XX,YY] = np.meshgrid(np.arange(x_new_right,x_new_right+newW)\
+                , np.arange(y_new_right,y_new_right+newH))
+    AA = np.ones((3,newH*newW))
+    AA[0,:] = np.reshape(XX,(1,newH*newW))
+    AA[1,:] = np.reshape(YY,(1,newH*newW))
+    AA = np.dot(H2,AA)
+    XX = np.reshape(np.divide(AA[0,:],AA[2,:]), (newH, newW))
+    YY = np.reshape(np.divide(AA[1,:],AA[2,:]), (newH,newW))
+# INTERPOLATION, WARP IMAGE A INTO NEW IMAGE
+    newImageRight = np.zeros((newH,newW, 3))
+    newImageRight[:,:,0] = interp2(image_C[:,:,0].astype(np.double), XX, YY)
+    newImageRight[:,:,1] = interp2(image_C[:,:,1].astype(np.double), XX, YY)
+    newImageRight[:,:,2] = interp2(image_C[:,:,2].astype(np.double), XX, YY)
+    newImageRight = newImageRight.astype(np.uint8)
+    
+    newImageMiddle = np.zeros((newH,newW,3))
+    newImageMiddle[y_new_middle:y_new_middle+h_middle\
+                   , x_new_middle: x_new_middle+w_middle,:] = image_B
+    newImageMiddle = newImageMiddle.astype(np.uint8)
+    
+    Image.fromarray(newImageLeft).save('new_left.jpg')
+    Image.fromarray(newImageMiddle).save('new_middle.jpg')
+    Image.fromarray(newImageRight).save('new_right.jpg')
+
+    return newImageLeft, newImageMiddle, newImageRight
+
+def blend(imgA,imgB):
+    maskA = np.logical_or(imgA[:,:,0]>0,imgA[:,:,1]>0,imgA[:,:,2]>0)
+    maskB = np.logical_or(imgB[:,:,0]>0,imgB[:,:,1]>0,imgB[:,:,2]>0)
+    maskAB = np.logical_and(maskA>0,maskB>0)
+    
+    _,col = np.where(maskAB>0)
+    left = col.min()
+    right = col.max()
+    mask = np.ones(maskAB.shape,dtype = np.float32)
+    mask[:,left:right+1] = np.tile(np.linspace(0,1,right-left+1),(maskAB.shape[0],1))
+    new_img = np.zeros(imgA.shape,dtype = np.float32)
+    new_img[:,:,0] = imgA[:,:,0] * mask + imgB[:,:,0] * (1-mask)
+    new_img[:,:,1] = imgA[:,:,1] * mask + imgB[:,:,1] * (1-mask)
+    new_img[:,:,2] = imgA[:,:,2] * mask + imgB[:,:,2] * (1-mask)
+    new_img = new_img.astype(np.uint8)
+    
+    return new_img  
