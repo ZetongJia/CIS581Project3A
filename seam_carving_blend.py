@@ -52,8 +52,6 @@ def getVerSeam(I, Mx, Tbx):
   return idxs
 
 def getOverlappingMask(imgA, imgB):
-	# maskA = np.where(imgA>0, imgA, 0)
-	# maskB = np.where(imgB>0, imgB, 0)
 	maskA = np.logical_or(imgA[:,:,0]>0,imgA[:,:,1]>0,imgA[:,:,2]>0)
 	maskB = np.logical_or(imgB[:,:,0]>0,imgB[:,:,1]>0,imgB[:,:,2]>0)
 	maskAB = np.logical_and(maskA>0,maskB>0)
@@ -62,9 +60,6 @@ def getOverlappingMask(imgA, imgB):
 def seamBlendLeft(imgA, imgB):
 	imgA_gray = rgb2gray(imgA)
 	imgB_gray = rgb2gray(imgB)
-	# maskAB = get_overlapping_mask(imgA, imgB)
-	# top = min(np.argwhere(maskAB>0), key=lambda x: x[0])[0]
-	# bottom = max(np.argwhere(maskAB>0), key=lambda x: x[0])[0]
 	top = min(np.argwhere(imgB_gray>0), key=lambda x: x[0])[0]
 	bottom = max(np.argwhere(imgB_gray>0), key=lambda x: x[0])[0]
 	left = min(np.argwhere(imgB_gray>0), key=lambda x: x[1])[1]
@@ -88,8 +83,6 @@ def seamBlendRight(imgB, imgC):
 	imgB_gray = rgb2gray(imgB)
 	imgC_gray = rgb2gray(imgC)
 	maskBC = getOverlappingMask(imgB, imgC)
-	# top = min(np.argwhere(maskBC>0), key=lambda x: x[0])[0]
-	# bottom = max(np.argwhere(maskBC>0), key=lambda x: x[0])[0]
 	top = min(np.argwhere(imgB_gray>0), key=lambda x: x[0])[0]
 	bottom = max(np.argwhere(imgB_gray>0), key=lambda x: x[0])[0]
 	left = min(np.argwhere(imgC_gray>0), key=lambda x: x[1])[1]
