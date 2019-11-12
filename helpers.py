@@ -162,12 +162,20 @@ def interp2_general(v, xq, yq):
         return interp_val.reshape(q_h, q_w)
     return interp_val
 
-def drawPoints(img,x,y):
+def drawPoints(img,x,y,color):
     x,y = x.reshape(-1),y.reshape(-1)
     for i in range(x.size):
         point = (x[i],y[i])
-        cv.circle(img,point,2,(i*127/x.size,i*127/x.size,255-i*127/x.size),2)
-
+        cv.circle(img,point,2,color,2)
+        
+def drawLines(img,x1,y1,x2,y2,color):
+    x1,y1 = x1.reshape(-1),y1.reshape(-1)
+    x2,y2 = x2.reshape(-1),y2.reshape(-1)
+    for i in range(x1.size):
+        point1 = (x1[i],y1[i])
+        point2 = (x2[i],y2[i])
+        cv.line(img,point1,point2,color,2)
+        
 def localMax(img,h,w):
     row,col=img.shape[0],img.shape[1]
     maxImage = np.zeros((row,col))

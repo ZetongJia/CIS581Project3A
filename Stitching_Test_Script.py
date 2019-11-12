@@ -11,9 +11,9 @@ from PIL import Image
 from mymosaic import mymosaic
 
 if __name__ == "__main__": 
-    img_name = np.array(['franklin'],dtype = np.object)
+    img_name = np.array(['franklin','cabin','sign'],dtype = np.object)
     M = img_name.shape[0]       # numbers of image sets
-    N = 3                    # numbers of images per set
+    N = 3                    	# numbers of images per set
     img_input_name = np.tile(img_name.reshape(-1,1),(1,N))
     img_input_name[:,0] = img_input_name[:,0] + '_left.jpg'
     img_input_name[:,1] = img_input_name[:,1] + '_middle.jpg'
