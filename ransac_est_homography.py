@@ -25,13 +25,13 @@ def ransac_est_homography(x1, y1, x2, y2, thresh):
   min_consensus = 0.95
   fpoints = 4
   npoints = len(x1)
-  tar_P = np.hstack((x1,y1,np.ones((npoints,1),dtype = np.int32))).transpose() 
-  src_P = np.hstack((x2,y2,np.ones((npoints,1),dtype = np.int32))).transpose()
+  src_P = np.hstack((x1,y1,np.ones((npoints,1),dtype = np.int32))).transpose() 
+  tar_P = np.hstack((x2,y2,np.ones((npoints,1),dtype = np.int32))).transpose()
   for i in range(iteration):
       rd = [np.random.randint(0, npoints) for __ in range(fpoints)]
 
-      tar_x, tar_y = x1[rd], y1[rd]
-      src_x, src_y = x2[rd], y2[rd]
+      src_x, src_y = x1[rd], y1[rd]
+      tar_x, tar_y = x2[rd], y2[rd]
       h = est_homography(src_x, src_y, tar_x, tar_y)
       src_warp = np.dot(h,src_P)
       src_warp[2,src_warp[2,:]==0] = 1e-10
