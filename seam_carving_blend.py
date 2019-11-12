@@ -1,5 +1,5 @@
 import numpy as np
-import matplotlib.pyplot as plts
+import matplotlib.pyplot as plt
 from PIL import Image
 
 def rgb2gray(I_rgb):
@@ -47,8 +47,8 @@ def getVerSeam(I, Mx, Tbx):
   idxs[-1] = idx
   for j in range(1,x+1):
     c = x - j
-    idxs[c] = idx
-    idx += Tbx[c, idx]
+    idxs[c] = idx%y
+    idx += Tbx[c, idx%y]
   return idxs
 
 def getOverlappingMask(imgA, imgB):
@@ -60,23 +60,27 @@ def getOverlappingMask(imgA, imgB):
 def seamBlendLeft(imgA, imgB):
 	imgA_gray = rgb2gray(imgA)
 	imgB_gray = rgb2gray(imgB)
+	maskAB = getOverlappingMask(imgA, imgB)
 	top = min(np.argwhere(imgB_gray>0), key=lambda x: x[0])[0]
 	bottom = max(np.argwhere(imgB_gray>0), key=lambda x: x[0])[0]
 	left = min(np.argwhere(imgB_gray>0), key=lambda x: x[1])[1]
 	right = max(np.argwhere(imgA_gray>0), key=lambda x: x[1])[1]
-
 	overlap_img = imgB[top:bottom, left:right]
 	e = genEngMap(overlap_img)
 	Mx, Tbx = cumMinEngVer(e)
 	seam_idxs = getVerSeam(overlap_img, Mx, Tbx)
 	blended_img = np.copy(imgA)
+	blended_img = np.copy(imgB)
+	blended_img[:,:,0] = imgA[:,:,0] + imgB[:,:,0] - np.multiply(maskAB,imgB[:,:,0])
+	blended_img[:,:,1] = imgA[:,:,1] + imgB[:,:,1] - np.multiply(maskAB,imgB[:,:,1])
+	blended_img[:,:,2] = imgA[:,:,2] + imgB[:,:,2] - np.multiply(maskAB,imgB[:,:,2])
 
 	for i in range(len(seam_idxs)):
 		idx = seam_idxs[i]
 		offset_y = left + idx
 		offset_x = top + i
 		blended_img[offset_x,offset_y:,:] = imgB[offset_x,offset_y:,:]
-	
+
 	return blended_img
 
 def seamBlendRight(imgB, imgC):

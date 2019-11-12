@@ -13,7 +13,7 @@
     - Outpuy match: N1 × 1 vector where match i points to the index of the descriptor in descs2 that matches with the
                     feature i in descriptor descs1. If no match is found, you should put match i = −1.
 '''
-import pyflann
+# import pyflann
 import numpy as np
 
 from helpers import dist2
