@@ -23,7 +23,7 @@ from ransac_est_homography import ransac_est_homography
 from helpers import rgb2gray
 from helpers import getNewSize
 from helpers import alphaBlend
-from seam_carving_blend import *
+from seam_carving_blend import seamBlend
 
 def mymosaic(img_input):
   # Your Code Here
@@ -65,7 +65,8 @@ def mymosaic(img_input):
         H2,inlier_ind2 = ransac_est_homography(xC2, yC2, xB2, yB2, ransac_thresh)
         
         new_left, new_middle, new_right = getNewSize(H1,H2,imgA,imgB,imgC)
-        img_mosaic[i,0] = seam_carving_blend_right(seam_carving_blend_left(new_left,new_middle),new_right)
+        
+        img_mosaic[i,0] = seamBlend(new_left, new_middle, new_right)
         # img_mosaic[i,0] = alphaBlend(alphaBlend(new_left,new_middle),new_right)
         
     return img_mosaic
