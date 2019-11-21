@@ -18,17 +18,25 @@ import scipy.ndimage as ndimage
 import scipy.signal as signal
 import matplotlib.pyplot as plt
 from skimage import filters
+from skimage import feature
 
 from helpers import GaussianPDF_2D
 
 def corner_detector(img):
   # Your Code Here 
 # Filter Method 1
-    img = np.float32(img) 
-    cimg = cv.cornerHarris(img,3,5,0.06)
+    cimg = feature.corner_harris(img)
     return cimg
+
 # =============================================================================
 # # Filter Method 2
+#     img = np.float32(img) 
+#     cimg = cv.cornerHarris(img,3,5,0.06)
+#     return cimg
+# =============================================================================
+    
+# =============================================================================
+# # Filter Method 3
 #     img = ndimage.gaussian_filter(img, sigma = 7);
 #     sobel = np.array([[1,2,1],[0,0,0],[-1,-2,-1]])
 #    
@@ -43,7 +51,7 @@ def corner_detector(img):
 # =============================================================================
   
 # =============================================================================
-# # Filter Method 3
+# # Filter Method 4
 #     G1 = GaussianPDF_2D(0,7,4,4)
 #     [dx,dy] =  np.gradient(G1, axis = (1,0))
 #     Ix = signal.convolve2d(img,dx,'same')
