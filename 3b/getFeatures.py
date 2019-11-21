@@ -1,13 +1,7 @@
 import numpy as np
-import scipy.ndimage as ndimage
-import scipy.signal as signal
-from helpers import rgb2gray
-from PIL import Image
-import matplotlib.pyplot as plt
-from skimage import filters
 from skimage import feature
-
-from getFeatureForOne import getFeatureForOne
+from helpers import rgb2gray
+from helpers import flipChannel
 
 def getFeatures(img,bbox):
     num_box = bbox.shape[0];
@@ -17,21 +11,17 @@ def getFeatures(img,bbox):
     N = 0;
 
     for i in range((num_box)):
-      # h = bbox[0,2,1] - bbox[0,1,1]
-      # w = bbox[0,1,0] - bbox[0,0,0]
-      row_start = int(bbox[i,1,1])
-      row_end = int(bbox[i,2,1])
-      col_start = int(bbox[i,0,0])
-      col_end = int(bbox[i,1,0])
-      img_temp = img[row_start:row_end,col_start:col_end]
-      # plt.imshow(img_temp)
-      # plt.show()
-      x, y, rmax = getFeatureForOne(img_temp)
-      x += col_start
-      y += row_start
-      N = max(N, x.shape[0])   
-      res_x_temp[0,i] = x.reshape(-1)
-      res_y_temp[0,i] = y.reshape(-1)
+        row_start = int(bbox[i,1,1]);
+        row_end = int(bbox[i,2,1]);
+        col_start = int(bbox[i,0,0]);
+        col_end = int(bbox[i,1,0]);
+        img_temp = img[row_start:row_end,col_start:col_end];
+        x, y, rmax = getBoxFeature(img_temp);
+        x += col_start;
+        y += row_start;
+        N = max(N, x.shape[0]);
+        res_x_temp[0,i] = x.reshape(-1);
+        res_y_temp[0,i] = y.reshape(-1);
 
     res_x = np.zeros((N,num_box));
     res_y = np.zeros((N,num_box));
@@ -41,28 +31,40 @@ def getFeatures(img,bbox):
       res_x[0:size_temp,i] = res_x_temp[0,i];
       res_y[0:size_temp,i] = res_y_temp[0,i];
 
-    return res_x, res_y
+    return res_x, res_y;
 
-if __name__ == "__main__": 
-    # test
-    im = Image.open("1.jpg")
-    np_im = np.array(im)
-    img_gray = rgb2gray(np_im)
-    bbox = np.zeros((1,4,2))
-    #left top 
-    bbox[0,0,0] = 290
-    bbox[0,0,1] = 185
-    #right top 
-    bbox[0,1,0] = 400
-    bbox[0,1,1] = 185
-    #left bottom 
-    bbox[0,2,0] = 290
-    bbox[0,2,1] = 270
-    #right bottom 
-    bbox[0,3,0] = 400
-    bbox[0,3,1] = 270
+def getBoxFeature(img):
+    max_pts = 5;
     
-    res_x, res_y = getFeatures(img_gray, bbox)
-    plt.imshow(im)
-    plt.scatter(res_x,res_y)
-    plt.show()
+    if (img.ndim == 3):
+        img = rgb2gray(flipChannel(img));
+    cimg = feature.corner_harris(img);
+
+    cimg[0:5],cimg[-1:-6:-1],cimg[:,0:5],cimg[:,-1:-6:-1] = 0,0,0,0;
+    thresh = 0.012*cimg.max();
+    y_ind,x_ind = np.where(cimg>thresh);
+    val = cimg[cimg>thresh];
+    
+    if x_ind.size < max_pts:
+        x,y = x_ind,y_ind;
+        rmax = 999999;
+        return x,y,rmax
+    
+    radius = np.zeros((x_ind.size,1));
+    c = 0.9;
+    max_val = c * val.max();
+    for i in range(x_ind.size):
+        if val[i] > max_val:
+            radius[i] = 999999;
+            continue;
+        else:
+            dist = np.sqrt((x_ind - x_ind[i])**2 + (y_ind - y_ind[i])**2);
+            dist = dist[val * c > val[i]];
+            radius[i] = dist.min();
+    radius = radius.reshape(-1);
+    index = np.argsort(-radius);
+    index = index[0:max_pts];
+    
+    x,y = x_ind[index].reshape(-1,1),y_ind[index].reshape(-1,1);
+    rmax = radius[index[-1]];
+    return x, y, rmax;
