@@ -63,9 +63,6 @@ def estimateFeatureTranslation(startX, startY, Ix, Iy, img1, img2):
         
     return newX, newY;
 
-def applyGeometricTransformation(startXs, startYs, newXs, newYs, bbox):
-    
-
 img1 = flipChannel(cv.imread('1.jpg'));
 img2 = flipChannel(cv.imread('17.jpg'));
 newXs, newYs = estimateAllTranslation(feat_x,feat_y,img1,img2);

@@ -7,7 +7,7 @@ Created on Tue Nov 19 23:20:56 2019
 
 import numpy as np
 import cv2 as cv
-from getFeatures import getFeatures
+from get_features import getFeatures
 from helpers import getBoxPoints
 from helpers import drawPoints
 
