@@ -38,30 +38,31 @@ def getFeatures(img,bbox):
 
     for i in range((num_box)):
       size_temp = res_x_temp[0,i].shape[0];
-      res_x[0:size_temp,i] = res_x_temp[0,i].reshape(-1,1);
-      res_y[0:size_temp,i] = res_y_temp[0,i].reshape(-1,1);
+      res_x[0:size_temp,i] = res_x_temp[0,i];
+      res_y[0:size_temp,i] = res_y_temp[0,i];
 
     return res_x, res_y
 
-# test
-im = Image.open("1.jpg")
-np_im = np.array(im)
-img_gray = rgb2gray(np_im)
-bbox = np.zeros((1,4,2))
-#left top 
-bbox[0,0,0] = 290
-bbox[0,0,1] = 185
-#right top 
-bbox[0,1,0] = 400
-bbox[0,1,1] = 185
-#left bottom 
-bbox[0,2,0] = 290
-bbox[0,2,1] = 270
-#right bottom 
-bbox[0,3,0] = 400
-bbox[0,3,1] = 270
-
-res_x, res_y = getFeatures(img_gray, bbox)
-plt.imshow(im)
-plt.scatter(res_x,res_y)
-plt.show()
+if __name__ == "__main__": 
+    # test
+    im = Image.open("1.jpg")
+    np_im = np.array(im)
+    img_gray = rgb2gray(np_im)
+    bbox = np.zeros((1,4,2))
+    #left top 
+    bbox[0,0,0] = 290
+    bbox[0,0,1] = 185
+    #right top 
+    bbox[0,1,0] = 400
+    bbox[0,1,1] = 185
+    #left bottom 
+    bbox[0,2,0] = 290
+    bbox[0,2,1] = 270
+    #right bottom 
+    bbox[0,3,0] = 400
+    bbox[0,3,1] = 270
+    
+    res_x, res_y = getFeatures(img_gray, bbox)
+    plt.imshow(im)
+    plt.scatter(res_x,res_y)
+    plt.show()

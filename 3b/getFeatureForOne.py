@@ -4,13 +4,18 @@ import scipy.signal as signal
 import matplotlib.pyplot as plt
 from skimage import filters
 from skimage import feature
+from helpers import rgb2gray
+from helpers import flipChannel
 
 
 def getFeatureForOne(img):
     max_pts = 5;
+    
+    if (img.ndim == 3):
+        img = rgb2gray(flipChannel(img));
     cimg = feature.corner_harris(img);
 
-#    cimg[0:20],cimg[-1:-21:-1],cimg[:,0:20],cimg[:,-1:-21:-1] = 0,0,0,0;
+    cimg[0:5],cimg[-1:-6:-1],cimg[:,0:5],cimg[:,-1:-6:-1] = 0,0,0,0;
     thresh = 0.012*cimg.max();
     y_ind,x_ind = np.where(cimg>thresh);
     val = cimg[cimg>thresh];

@@ -7,8 +7,9 @@ Created on Tue Nov 19 23:20:56 2019
 
 import numpy as np
 import cv2 as cv
-
+from getFeatures import getFeatures
 from helpers import getBoxPoints
+from helpers import drawPoints
 
 if __name__ == "__main__": 
     cap = cv.VideoCapture("Easy.mp4");
@@ -30,6 +31,11 @@ if __name__ == "__main__":
                 if F >= max_object:
                     cv.destroyAllWindows();
                     break;
+            feat_x, feat_y = getFeatures(frame, bbox);
+            drawPoints(frame,feat_x,feat_y,(0,0,255));
+            cv.imshow("feature points", frame);
+            cv.waitKey(0);
+            cv.destroyAllWindows();
         elif frame_cnt == 2:
             cv.imwrite(str(frame_cnt)+".jpg",frame);
         cv.imshow("capture",frame);
