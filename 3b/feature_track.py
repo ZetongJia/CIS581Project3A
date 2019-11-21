@@ -6,8 +6,10 @@ Created on Wed Nov 20 00:28:25 2019
 """
 
 import numpy as np
-import scipy.signal as signal
 import cv2 as cv
+import scipy.signal as signal
+import skimage.transform as tf
+
 from helpers import rgb2gray
 from helpers import GaussianPDF_2D
 from helpers import flipChannel
@@ -35,15 +37,15 @@ def estimateAllTranslation(startXs,startYs,img1,img2):
     return newXs, newYs;
 
 def estimateFeatureTranslation(startX, startY, Ix, Iy, img1, img2):
-    I_gray_1 = rgb2gray(img1);
-    I_gray_2 = rgb2gray(img2);
+    I_gray_1, I_gray_2 = rgb2gray(img1), rgb2gray(img2);
     X_old, Y_old = generatePatch(startX,startY);
     X_old, Y_old = X_old.astype(np.int32),Y_old.astype(np.int32)
+    Ix_temp, Iy_temp = Ix[Y_old,X_old], Iy[Y_old,X_old];
     x0, y0 = startX, startY;
     min_error = 999999;
     newX, newY = 0, 0;
     
-    iteration = 20;
+    iteration = 10;
     for i in range(iteration):
         X_new,Y_new = generatePatch(x0,y0);
         old_coor = np.array((x0,y0)).reshape(-1,1);
@@ -53,8 +55,6 @@ def estimateFeatureTranslation(startX, startY, Ix, Iy, img1, img2):
             min_error = error;
             newX, newY = x0,y0;
         
-        Ix_temp = Ix[Y_old,X_old];
-        Iy_temp = Iy[Y_old,X_old];
         A = np.hstack((Ix_temp.reshape(-1,1),Iy_temp.reshape(-1,1)));
         b = It_temp.reshape(-1,1);
         flow_temp = np.linalg.solve(np.dot(A.T,A),-np.dot(A.T,b));
@@ -63,6 +63,24 @@ def estimateFeatureTranslation(startX, startY, Ix, Iy, img1, img2):
         
     return newX, newY;
 
+def applyGeometricTransformation(startXs, startYs, newXs, newYs, bbox):
+    for j in range(startXs.shape[1]):
+        old_coor = np.hstack((startXs[:,j].reshape(-1,1),\
+                              startYs[:,j].reshape(-1,1)));
+        new_coor = np.hstack((newXs[:,j].reshape(-1,1),\
+                              newXs[:,j].reshape(-1,1)));
+        tform = tf.SimilarityTransform();
+        res =tform.estimate(new_coor, old_coor);
+        M = tform.params;
+        if res:
+            
+
 img1 = flipChannel(cv.imread('1.jpg'));
 img2 = flipChannel(cv.imread('17.jpg'));
 newXs, newYs = estimateAllTranslation(feat_x,feat_y,img1,img2);
+old_coor = np.hstack((feat_x[:,1].reshape(-1,1),feat_y[:,1].reshape(-1,1)));
+new_coor = np.hstack((newXs[:,1].reshape(-1,1),newXs[:,1].reshape(-1,1)));
+tform = tf.SimilarityTransform();
+res =tform.estimate(new_coor, old_coor)
+M = tform.params
+

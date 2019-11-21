@@ -178,3 +178,6 @@ def getBoxPoints(x,y,w,h):
     box_pts[2][1] = y + h;
     box_pts[3][1] = y + h;
     return box_pts
+
+#def isInBox(Xs,Ys,bbox):
+#    
