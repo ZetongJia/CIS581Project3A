@@ -88,7 +88,7 @@ def interp2(v, xq, yq):
     newH = bottom - top + 1
     newW = right - left + 1
     X,Y = np.meshgrid(np.arange(left,right),np.arange(top,bottom))
-    V = np.zeros((newH,newW),dtype = np.int32)
+    V = np.zeros((newH,newW),dtype = np.float32)
     yy,xx = np.where((X>=0)*(X<w)*(Y>=0)*(Y<h))
     V[min(yy):max(yy)+1,min(xx):max(xx)+1] = v
     
