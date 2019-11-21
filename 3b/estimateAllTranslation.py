@@ -25,7 +25,7 @@ def estimateAllTranslation(startXs,startYs,img1,img2):
         for j in range(F):
             newX, newY = estimateFeatureTranslation(startXs[i][j],\
                                 startYs[i][j], Ix, Iy, img1, img2)
-            if (newX>=0)*(newX<col)*(newY>=0)*(newY<row)>0:
+            if newX>=0 and newX<col and newY>=0 and newY<row>0:
                 newXs[i][j] = newX;
                 newYs[i][j] = newY;
                 

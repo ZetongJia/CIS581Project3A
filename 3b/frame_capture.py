@@ -20,7 +20,7 @@ if __name__ == "__main__":
         ret,frame = cap.read();
         frame_cnt = frame_cnt + 1;
         if frame_cnt == 1:
-            cv.imwrite("1.jpg",frame);
+            cv.imwrite(str(frame_cnt)+".jpg",frame);
             while True:
                 x,y,w,h = np.int32(cv.selectROI("roi", frame, fromCenter=False));
                 cv.destroyAllWindows();
@@ -30,6 +30,8 @@ if __name__ == "__main__":
                 if F >= max_object:
                     cv.destroyAllWindows();
                     break;
+        elif frame_cnt == 2:
+            cv.imwrite(str(frame_cnt)+".jpg",frame);
         cv.imshow("capture",frame);
         if cv.waitKey(30) & 0xff == ord('q'):
             cv.destroyAllWindows();
