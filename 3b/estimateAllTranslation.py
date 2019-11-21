@@ -12,7 +12,7 @@ from helpers import rgb2gray
 from helpers import GaussianPDF_2D
 
 def estimateAllTranslation(startXs,startYs,img1,img2):
-    row,col = img1.shape[0], img1_shape[1];
+    row,col = img1.shape[0], img1.shape[1];
     N,F = startXs.shape[0], startXs.shape[1];
     I_gray_1 = rgb2gray(img1);
     G = GaussianPDF_2D(0,3,4,4);
