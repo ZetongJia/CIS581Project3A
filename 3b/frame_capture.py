@@ -21,7 +21,7 @@ if __name__ == "__main__":
     max_object = 1;
     bbox = np.zeros((max_object,4,2),dtype = np.int32);
     F = 0;
-    while True:
+    while True: 
         ret,frame = cap.read();
         frame_cnt = frame_cnt + 1;
         if frame_cnt == 1:
@@ -45,13 +45,14 @@ if __name__ == "__main__":
 #            cv.imwrite(str(frame_cnt)+".jpg",frame);
         else:
             newXs, newYs = estimateAllTranslation(feat_x,feat_y,\
-                            flipChannel(last_frame),flipChannel(last_frame));
+                            flipChannel(last_frame),flipChannel(frame));
             feat_x,feat_y,bbox = applyGeometricTransformation(feat_x,\
                                                 feat_y,newXs,newYs,bbox);
             last_frame = frame; 
-            for f in range(bbox.shape[0]):
+            for f in range(bbox.shape[0]): 
                 cv.rectangle(frame,(bbox[f,0,0],bbox[f,0,1]),
                             (bbox[f,3,0],bbox[f,3,1]),(0,255,0),2);
+            drawPoints(frame,feat_x,feat_y,(0,0,255));
                                     
         cv.imshow("capture",frame);
         if cv.waitKey(30) & 0xff == ord('q'):

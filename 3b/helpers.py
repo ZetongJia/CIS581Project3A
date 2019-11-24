@@ -162,8 +162,8 @@ def flipChannel(img):
     return new_image
 
 def generatePatch(x,y):
-    x_temp = np.arange(x-2, x+3);
-    y_temp = np.arange(y-2, y+3);
+    x_temp = np.array([x-2,x-1,x,x+1,x+2]);
+    y_temp = np.array([y-2,y-1,y,y+1,y+2]);
     [X,Y] = np.meshgrid(x_temp,y_temp);
     return X,Y
 

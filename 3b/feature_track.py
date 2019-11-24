@@ -47,7 +47,6 @@ def estimateFeatureTranslation(startX, startY, Ix, Iy, img1, img2):
     x0, y0 = startX, startY;
     min_error = 999999;
     error_thresh = 1;
-    newX, newY = 0, 0;
     
     iteration = 10;
     for i in range(iteration):
@@ -66,7 +65,7 @@ def estimateFeatureTranslation(startX, startY, Ix, Iy, img1, img2):
         b = It_temp.reshape(-1,1);
         flow_temp = np.linalg.solve(np.dot(A.T,A),-np.dot(A.T,b));
         new_coor = old_coor + flow_temp;
-        x0, y0 = new_coor[0], new_coor[1];
+        x0, y0 = new_coor[0,0], new_coor[1,0];
         
     return newX, newY;
 
