@@ -63,54 +63,54 @@ def rgb2gray(I_rgb):
 #   - output interpv: the interpolated value at querying coordinates xq, yq, it has the same size as xq and yq.
 
 def interp2(v, xq, yq):
-    if len(xq.shape) == 2 or len(yq.shape) == 2:
-        dim_input = 2
-        q_h = xq.shape[0]
-        q_w = xq.shape[1]
-        xq = xq.flatten()
-        yq = yq.flatten()
-    
-    h = v.shape[0]
-    w = v.shape[1]
-    if xq.shape != yq.shape:
-        raise 'query coordinates Xq Yq should have same shape'
-    
-    x_floor = np.floor(xq).astype(np.int32)
-    y_floor = np.floor(yq).astype(np.int32)
-    x_ceil = np.ceil(xq).astype(np.int32)
-    y_ceil = np.ceil(yq).astype(np.int32)
 
-    left = min([min(x_floor),0])
-    right = max([max(x_ceil),w])
-    top = min([min(y_floor),0])
-    bottom = max([max(y_ceil),h])
-    
-    newH = bottom - top + 1
-    newW = right - left + 1
-    X,Y = np.meshgrid(np.arange(left,right),np.arange(top,bottom))
-    V = np.zeros((newH,newW),dtype = np.float32)
-    yy,xx = np.where((X>=0)*(X<w)*(Y>=0)*(Y<h))
-    V[min(yy):max(yy)+1,min(xx):max(xx)+1] = v
-    
-    V1 = V[y_floor-top, x_floor-left]
-    V2 = V[y_floor-top, x_ceil-left]
-    V3 = V[y_ceil-top, x_floor-left]
-    V4 = V[y_ceil-top, x_ceil-left]
+	if len(xq.shape) == 2 or len(yq.shape) == 2:
+		dim_input = 2
+		q_h = xq.shape[0]
+		q_w = xq.shape[1]
+		xq = xq.flatten()
+		yq = yq.flatten()
 
-    lh = yq - y_floor
-    lw = xq - x_floor
-    hh = 1 - lh
-    hw = 1 - lw
-    
-    w1 = hh * hw
-    w2 = hh * lw
-    w3 = lh * hw
-    w4 = lh * lw
-    
-    interp_val = w1 * V1 + w2 * V2 + w3 * V3 + w4 * V4
-    if dim_input == 2:
-        return interp_val.reshape(q_h, q_w)
-    return interp_val
+	h = v.shape[0]
+	w = v.shape[1]
+	if xq.shape != yq.shape:
+		raise 'query coordinates Xq Yq should have same shape'
+
+	x_floor = np.floor(xq).astype(np.int32)
+	y_floor = np.floor(yq).astype(np.int32)
+	x_ceil = np.ceil(xq).astype(np.int32)
+	y_ceil = np.ceil(yq).astype(np.int32)
+
+	x_floor[x_floor < 0] = 0
+	y_floor[y_floor < 0] = 0
+	x_ceil[x_ceil < 0] = 0
+	y_ceil[y_ceil < 0] = 0
+
+	x_floor[x_floor >= w-1] = w-1
+	y_floor[y_floor >= h-1] = h-1
+	x_ceil[x_ceil >= w-1] = w-1
+	y_ceil[y_ceil >= h-1] = h-1
+
+	v1 = v[y_floor, x_floor]
+	v2 = v[y_floor, x_ceil]
+	v3 = v[y_ceil, x_floor]
+	v4 = v[y_ceil, x_ceil]
+
+	lh = yq - y_floor
+	lw = xq - x_floor
+	hh = 1 - lh
+	hw = 1 - lw
+
+	w1 = hh * hw
+	w2 = hh * lw
+	w3 = lh * hw
+	w4 = lh * lw
+
+	interp_val = v1 * w1 + w2 * v2 + w3 * v3 + w4 * v4
+
+	if dim_input == 2:
+		return interp_val.reshape(q_h, q_w)
+	return interp_val
 
 def drawPoints(img,x,y,color):
     x,y = x.reshape(-1).astype(np.int32),y.reshape(-1).astype(np.int32)
@@ -179,5 +179,44 @@ def getBoxPoints(x,y,w,h):
     box_pts[3][1] = y + h;
     return box_pts
 
-#def isInBox(Xs,Ys,bbox):
-#    
+
+if __name__ == "__main__":
+    import scipy.signal as signal
+    import cv2 as cv
+    
+    x0, y0 = 5, 1;
+    X_old = np.array([[4,5,6],[4,5,6],[4,5,6]],dtype = np.int32);
+    Y_old = np.array([[0,0,0],[1,1,1],[2,2,2]],dtype = np.int32);
+    i1 = np.vstack((np.arange(0,10,1).reshape(1,-1),\
+                   np.arange(0,20,2).reshape(1,-1),\
+                   np.arange(0,30,3).reshape(1,-1)));
+    i2 = np.vstack((np.arange(2,12,1).reshape(1,-1),\
+                   np.arange(4,24,2).reshape(1,-1),\
+                   np.arange(6,36,3).reshape(1,-1)));
+#    G = GaussianPDF_2D(0,1,4,4);
+#    [dx,dy] =  np.gradient(G, axis = (1,0));
+#    ix = signal.convolve2d(i1,dx,'same');
+#    iy = signal.convolve2d(i1,dy,'same');
+    
+    ix,iy = np.gradient(i1,axis = (1,0));
+    
+#    ix = cv.Sobel(i1,cv.CV_64F,1,0,ksize=3);
+#    iy = cv.Sobel(i1,cv.CV_64F,0,1,ksize=3);
+    
+    ix_temp = ix[Y_old,X_old];
+    iy_temp = iy[Y_old,X_old];
+    for i in range(5):
+        X_new = np.array([[x0-1,x0,x0+1],[x0-1,x0,x0+1],[x0-1,x0,x0+1]]);
+        Y_new = np.array([[0,0,0],[1,1,1],[2,2,2]]);
+        old_coor = np.array((x0,y0)).reshape(-1,1);
+        it_temp = interp2(i2,X_new,Y_new) - i1[Y_old,X_old];
+        error = np.linalg.norm(it_temp);
+        A = np.hstack((ix_temp.reshape(-1,1),iy_temp.reshape(-1,1)));
+        b = -it_temp.reshape(-1,1);
+        flow_temp = np.linalg.solve(np.dot(A.T,A),np.dot(A.T,b));
+        new_coor = old_coor + flow_temp;
+        x0, y0 = new_coor[0,0], new_coor[1,0];
+    print(x0);
+    print(y0);
+
+

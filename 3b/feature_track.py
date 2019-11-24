@@ -21,10 +21,11 @@ def estimateAllTranslation(startXs,startYs,img1,img2):
     row,col = img1.shape[0], img1.shape[1];
     N,F = startXs.shape[0], startXs.shape[1];
     I_gray_1 = rgb2gray(img1);
-    G = GaussianPDF_2D(0,3,4,4);
-    [dx,dy] =  np.gradient(G, axis = (1,0));
-    Ix = signal.convolve2d(I_gray_1,dx,'same');
-    Iy = signal.convolve2d(I_gray_1,dy,'same');
+#    G = GaussianPDF_2D(0,1,4,4);
+#    [dx,dy] =  np.gradient(G, axis = (1,0));
+#    Ix = signal.convolve2d(I_gray_1,dx,'same');
+#    Iy = signal.convolve2d(I_gray_1,dy,'same');
+    Ix,Iy = np.gradient(I_gray_1,axis = (1,0));
     newXs = np.zeros((N,F),dtype = np.int32);
     newYs = np.zeros((N,F),dtype = np.int32);
     for i in range(N):
@@ -48,7 +49,7 @@ def estimateFeatureTranslation(startX, startY, Ix, Iy, img1, img2):
     min_error = 999999;
     error_thresh = 1;
     
-    iteration = 10;
+    iteration = 5;
     for i in range(iteration):
         X_new,Y_new = generatePatch(x0,y0);
         old_coor = np.array((x0,y0)).reshape(-1,1);
@@ -62,11 +63,11 @@ def estimateFeatureTranslation(startX, startY, Ix, Iy, img1, img2):
                 break;
         
         A = np.hstack((Ix_temp.reshape(-1,1),Iy_temp.reshape(-1,1)));
-        b = It_temp.reshape(-1,1);
-        flow_temp = np.linalg.solve(np.dot(A.T,A),-np.dot(A.T,b));
+        b = -It_temp.reshape(-1,1);
+        flow_temp = np.linalg.solve(np.dot(A.T,A),np.dot(A.T,b));
         new_coor = old_coor + flow_temp;
         x0, y0 = new_coor[0,0], new_coor[1,0];
-        
+    
     return newX, newY;
 
 def applyGeometricTransformation(startXs, startYs, newXs, newYs, bbox):
@@ -76,8 +77,10 @@ def applyGeometricTransformation(startXs, startYs, newXs, newYs, bbox):
                               startYs[:,j].reshape(-1,1)));
         new_coor = np.hstack((newXs[:,j].reshape(-1,1),\
                               newYs[:,j].reshape(-1,1)));
+        error = np.sqrt((newXs[:,j]-startXs[:,j])**2 +\
+                        (newYs[:,j]-startYs[:,j])**2);
         tform = tf.SimilarityTransform();
-        res =tform.estimate(new_coor, old_coor);
+        res = tform.estimate(old_coor[error<4], new_coor[error<4]);
         M = tform.params;
         if res:
             x_temp = bbox[j,:,0].reshape(-1);

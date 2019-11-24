@@ -43,6 +43,7 @@ if __name__ == "__main__":
             cv.destroyAllWindows();
 #        elif frame_cnt == 3:
 #            cv.imwrite(str(frame_cnt)+".jpg",frame);
+#        elif frame_cnt % 5 == 1:
         else:
             newXs, newYs = estimateAllTranslation(feat_x,feat_y,\
                             flipChannel(last_frame),flipChannel(frame));
@@ -53,6 +54,11 @@ if __name__ == "__main__":
                 cv.rectangle(frame,(bbox[f,0,0],bbox[f,0,1]),
                             (bbox[f,3,0],bbox[f,3,1]),(0,255,0),2);
             drawPoints(frame,feat_x,feat_y,(0,0,255));
+#        else:
+#            for f in range(bbox.shape[0]): 
+#                cv.rectangle(frame,(bbox[f,0,0],bbox[f,0,1]),
+#                            (bbox[f,3,0],bbox[f,3,1]),(0,255,0),2);
+#            drawPoints(frame,feat_x,feat_y,(0,0,255));
                                     
         cv.imshow("capture",frame);
         if cv.waitKey(30) & 0xff == ord('q'):
