@@ -95,7 +95,7 @@ def getFeatures(img,bbox):
     return res_x, res_y;
 
 def getBoxFeature(img):
-    max_pts = 20;
+    max_pts = 10;
     
     if (img.ndim == 3):
         img = rgb2gray(flipChannel(img));
