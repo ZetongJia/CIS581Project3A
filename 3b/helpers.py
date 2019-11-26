@@ -113,10 +113,9 @@ def interp2(v, xq, yq):
 	return interp_val
 
 def drawPoints(img,x,y,color):
-    x_copy, y_copy = x, y;
-    x_copy, y_copy = x_copy.reshape(-1).astype(np.int32),y_copy.reshape(-1).astype(np.int32)
-    for i in range(x_copy.size):
-        point = (x_copy[i],y_copy[i])
+    x, y = x.reshape(-1).astype(np.int32),y.reshape(-1).astype(np.int32)
+    for i in range(x.size):
+        point = (x[i],y[i])
         cv.circle(img,point,2,color,2)
         
 def drawLines(img,x1,y1,x2,y2,color):

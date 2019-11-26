@@ -18,14 +18,15 @@ from helpers import flipChannel
 if __name__ == "__main__": 
     cap = cv.VideoCapture("Easy.mp4");
     fourcc = cv.VideoWriter_fourcc(*'MJPG');
-#    out = cv.VideoWriter('output.avi',fourcc, 10, (640,360));
+    out = cv.VideoWriter('output.avi',fourcc, 30, (640,360));
     frame_cnt = 0;
-    max_object = 1;
+    max_object = 2 ;
     bbox = np.zeros((max_object,4,2),dtype = np.int32); 
     trace_x = list();
     trace_y = list();
     while True: 
         ret,frame = cap.read();
+        frame_show = frame.copy();
         if ret == True:
             frame_cnt = frame_cnt + 1;
             row,col = frame.shape[0],frame.shape[1];
@@ -57,14 +58,28 @@ if __name__ == "__main__":
                 last_frame = frame; 
                 trace_x.append(feat_x);
                 trace_y.append(feat_y);
+                f = 0;
                 for f in range(bbox.shape[0]):
-                    cv.rectangle(frame,(bbox[f,0,0],bbox[f,0,1]),
+                    if np.sum(np.isnan(bbox[f,:,:])) > 0:
+                        bbox[f,:,:] = 0;
+                        feat_x[:,f:f+1] = 0;
+                        feat_y[:,f:f+1] = 0;
+                
+                for f in range(bbox.shape[0]):
+                    if np.sum(bbox[f,:,:]) == 0:
+                        continue;
+                    cv.rectangle(frame,(bbox[f,0,0],bbox[f,0,1]),\
                                 (bbox[f,3,0],bbox[f,3,1]),(0,255,0),2);
+                    cv.rectangle(frame_show,(bbox[f,0,0],bbox[f,0,1]),\
+                            (bbox[f,3,0],bbox[f,3,1]),((2-f)*127,(f+1)*127,0),2);
                     drawPoints(frame,feat_x[:,f],feat_y[:,f],(0,0,255));
                 for k in range(len(trace_x)):
                     for f in range(trace_x[k].shape[1]):
-                        drawPoints(frame,trace_x[k][:,f],trace_y[k][:,f],(0,0,255));
-    #        out.write(frame);
+                        drawPoints(frame_show,trace_x[k][:,f],\
+                                   trace_y[k][:,f],((2-f)*127,0,(f+1)*127));
+                        
+            out.write(frame_show);
+            cv.imshow("show", frame_show);
             cv.imshow("capture",frame);
             if cv.waitKey(30) & 0xff == ord('q'):
                 cv.destroyAllWindows();
