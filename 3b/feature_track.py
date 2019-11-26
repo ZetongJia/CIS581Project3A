@@ -101,9 +101,17 @@ def applyGeometricTransformation(startXs, startYs, newXs, newYs, bbox):
         newbbox[f,:,:] = corner_new;
 #        obtain Xs, Ys
 #        TO DO: delete bbox outlier
-        N1 = max(x_old.shape[0], N1);
-        Xs[0:x_old.size,f:f+1] = x_new.reshape(-1,1);
-        Ys[0:y_old.size,f:f+1] = y_new.reshape(-1,1);
+        # x_new = x_new[np.where(x_new[])]
+        # N1 = max(x_old.shape[0], N1);
+        # Xs[0:x_old.size,f:f+1] = x_new.reshape(-1,1);
+        # Ys[0:y_old.size,f:f+1] = y_new.reshape(-1,1);
+        x_in_bbox = x_new[np.where(x_new <= newbbox[f,3,0])] # and x_new >= newbbox[f, 0,0])]
+        x_in_bbox = x_new[np.where(x_new >= newbbox[f,0,0])] # and x_new >= newbbox[f, 0,0])]
+        y_in_bbox = y_new[np.where(y_new <= newbbox[f,3,1])] # and y_new >= newbbox[f, 0,1])]
+        y_in_bbox = y_new[np.where(y_new >= newbbox[f,0,1])] # and y_new >= newbbox[f, 0,1])]
+        N1 = max(x_in_bbox.shape[0], y_in_bbox.shape[0], N1)
+        Xs[0:x_in_bbox.size,f:f+1] = x_in_bbox.reshape(-1,1);
+        Ys[0:y_in_bbox.size,f:f+1] = y_in_bbox.reshape(-1,1);
     
     Xs = Xs[0:N1,:];
     Ys = Ys[0:N1,:];
