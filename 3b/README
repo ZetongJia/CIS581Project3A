@@ -1,0 +1,12 @@
+Code:
+
+Simply run frame_capture.py to obtain result images
+feature_track.py has estimateAllTranslation, estimateFeatureTranslation, and applyGeometricTransformation functions. In get_features.py, we uses cv.goodFeaturesToTrack to extract feature points for the first frame. We have also included helper functions such as rgb2gray, interp2, drawpoints, and etc. in helpers.py.
+
+Input Videos
+Easy
+Medium
+
+Output Videos
+Tracked Easy 
+Tracked Medium 
