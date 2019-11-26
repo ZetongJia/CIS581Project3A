@@ -183,40 +183,67 @@ def getBoxPoints(x,y,w,h):
 if __name__ == "__main__":
     import scipy.signal as signal
     import cv2 as cv
+    import skimage.transform as tf
     
-    x0, y0 = 5, 1;
-    X_old = np.array([[4,5,6],[4,5,6],[4,5,6]],dtype = np.int32);
-    Y_old = np.array([[0,0,0],[1,1,1],[2,2,2]],dtype = np.int32);
+    xs1, ys1 = 5, 1;
+    xs2, ys2 = 8, 1;
+    
+    x1, y1 = xs1, ys1;
+    x2, y2 = xs2, ys2;
+    
     i1 = np.vstack((np.arange(0,10,1).reshape(1,-1),\
                    np.arange(0,20,2).reshape(1,-1),\
                    np.arange(0,30,3).reshape(1,-1)));
     i2 = np.vstack((np.arange(2,12,1).reshape(1,-1),\
                    np.arange(4,24,2).reshape(1,-1),\
                    np.arange(6,36,3).reshape(1,-1)));
-#    G = GaussianPDF_2D(0,1,4,4);
-#    [dx,dy] =  np.gradient(G, axis = (1,0));
-#    ix = signal.convolve2d(i1,dx,'same');
-#    iy = signal.convolve2d(i1,dy,'same');
-    
+                    
     ix,iy = np.gradient(i1,axis = (1,0));
     
-#    ix = cv.Sobel(i1,cv.CV_64F,1,0,ksize=3);
-#    iy = cv.Sobel(i1,cv.CV_64F,0,1,ksize=3);
-    
+    X_old = np.array([[x1-1,x1,x1+1],[x1-1,x1,x1+1],[x1-1,x1,x1+1]],dtype = np.int32);
+    Y_old = np.array([[0,0,0],[1,1,1],[2,2,2]],dtype = np.int32);
     ix_temp = ix[Y_old,X_old];
     iy_temp = iy[Y_old,X_old];
     for i in range(5):
-        X_new = np.array([[x0-1,x0,x0+1],[x0-1,x0,x0+1],[x0-1,x0,x0+1]]);
+        X_new = np.array([[x1-1,x1,x1+1],[x1-1,x1,x1+1],[x1-1,x1,x1+1]]);
         Y_new = np.array([[0,0,0],[1,1,1],[2,2,2]]);
-        old_coor = np.array((x0,y0)).reshape(-1,1);
+        old_coor = np.array((x1,y1)).reshape(-1,1);
         it_temp = interp2(i2,X_new,Y_new) - i1[Y_old,X_old];
         error = np.linalg.norm(it_temp);
         A = np.hstack((ix_temp.reshape(-1,1),iy_temp.reshape(-1,1)));
         b = -it_temp.reshape(-1,1);
         flow_temp = np.linalg.solve(np.dot(A.T,A),np.dot(A.T,b));
         new_coor = old_coor + flow_temp;
-        x0, y0 = new_coor[0,0], new_coor[1,0];
-    print(x0);
-    print(y0);
+        x1, y1 = new_coor[0,0], new_coor[1,0];
+    xe1, ye1 = x1, y1;
+    print(xe1);
+    print(ye1);
+    
+    X_old = np.array([[x2-1,x2,x2+1],[x2-1,x2,x2+1],[x2-1,x2,x2+1]],dtype = np.int32);
+    Y_old = np.array([[0,0,0],[1,1,1],[2,2,2]],dtype = np.int32);
+    ix_temp = ix[Y_old,X_old];
+    iy_temp = iy[Y_old,X_old];
+    for i in range(5):
+        X_new = np.array([[x2-1,x2,x2+1],[x2-1,x2,x2+1],[x2-1,x2,x2+1]]);
+        Y_new = np.array([[0,0,0],[1,1,1],[2,2,2]]);
+        old_coor = np.array((x2,y2)).reshape(-1,1);
+        it_temp = interp2(i2,X_new,Y_new) - i1[Y_old,X_old];
+        error = np.linalg.norm(it_temp);
+        A = np.hstack((ix_temp.reshape(-1,1),iy_temp.reshape(-1,1)));
+        b = -it_temp.reshape(-1,1);
+        flow_temp = np.linalg.solve(np.dot(A.T,A),np.dot(A.T,b));
+        new_coor = old_coor + flow_temp;
+        x2, y2 = new_coor[0,0], new_coor[1,0];
+    xe2, ye2 = x2, y2;
+    print(xe2);
+    print(ye2);
+    
+    old_coor = np.array([[xs1,ys1],[xs2,ys2]]);
+    new_coor = np.array([[xe1,ye1],[xe2,ye2]]);
+    tform = tf.estimate_transform('similarity', old_coor, new_coor);
+    tformp = np.asmatrix(tform.params);
+    print(tform.params);
+    corres = tformp.dot(np.array([[xs1,xs2],[ys1,ys2],[1,1]]));
+    print(corres);
 
 

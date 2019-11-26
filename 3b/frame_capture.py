@@ -3,7 +3,7 @@
 Created on Tue Nov 19 23:20:56 2019
 
 @author: Jiatong Sun
-q"""
+ q"""
 
 import numpy as np
 import cv2 as cv
@@ -18,9 +18,9 @@ from helpers import flipChannel
 if __name__ == "__main__": 
     cap = cv.VideoCapture("Easy.mp4");
     fourcc = cv.VideoWriter_fourcc(*'MJPG');
-    out = cv.VideoWriter('output.mp4',fourcc, 10, (640,360));
+    out = cv.VideoWriter('output.avi',fourcc, 10, (640,360));
     frame_cnt = 0;
-    max_object = 2;
+    max_object = 1;
     bbox = np.zeros((max_object,4,2),dtype = np.int32);
     F = 0;
     while True: 
@@ -51,11 +51,14 @@ if __name__ == "__main__":
                             flipChannel(last_frame),flipChannel(frame));
             feat_x,feat_y,bbox = applyGeometricTransformation(feat_x,\
                                                 feat_y,newXs,newYs,bbox);
+#            print("");
+#            print(feat_x);
+#            print(feat_y);
             last_frame = frame; 
-            inlier_ind =  (feat_x >= 0) * (feat_x < col) *\
-                      (feat_y >= 0) * (feat_y < row);
-            feat_x = feat_x * inlier_ind;
-            feat_y = feat_y * inlier_ind;
+#            inlier_ind =  (feat_x >= 0) * (feat_x < col) *\
+#                      (feat_y >= 0) * (feat_y < row);
+#            feat_x = feat_x * inlier_ind;
+#            feat_y = feat_y * inlier_ind;
 #            bbox_orth = np.zeros(bbox.shape,dtype = np.int32);
 #            for f in range(bbox.shape[0]):
 #                new_corners_temp = bbox[f,:,:];
@@ -69,6 +72,7 @@ if __name__ == "__main__":
 #                bbox_orth[f,:,:] = getBoxPoints(x,y,w,h);
 #                cv.rectangle(frame,(x,y),(x+w,y+h),(0,255,0),2);
 #                drawPoints(frame,feat_x[:,f],feat_y[:,f],(0,0,255));
+#            print(bbox);
             for f in range(bbox.shape[0]):
                 cv.rectangle(frame,(bbox[f,0,0],bbox[f,0,1]),
                             (bbox[f,3,0],bbox[f,3,1]),(0,255,0),2);
