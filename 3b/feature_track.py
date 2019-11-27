@@ -1,36 +1,22 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Nov 20 00:28:25 2019
-
-@author: Jiatong Sun
-"""
-
 import numpy as np
-import cv2 as cv
-import scipy.signal as signal
 import skimage.transform as tf
 
 from helpers import rgb2gray
-from helpers import GaussianPDF_2D
-from helpers import flipChannel
 from helpers import generatePatch
 from helpers import interp2
-from helpers import getBoxPoints
 
+# get corresponding point for every feature point 
 def estimateAllTranslation(startXs,startYs,img1,img2):
     row,col = img1.shape[0], img1.shape[1];
     N,F = startXs.shape[0], startXs.shape[1];
     I_gray_1 = rgb2gray(img1);
-#    G = GaussianPDF_2D(0,1,4,4);
-#    [dx,dy] =  np.gradient(G, axis = (1,0));
-#    Ix = signal.convolve2d(I_gray_1,dx,'same');
-#    Iy = signal.convolve2d(I_gray_1,dy,'same');
     Ix,Iy = np.gradient(I_gray_1,axis = (1,0));
     newXs = np.zeros((N,F),dtype = np.int32);
     newYs = np.zeros((N,F),dtype = np.int32);
     for i in range(N):
         for j in range(F):
-            if startXs[i][j] == 0 or startYs[i][j] == 0:
+            if startXs[i][j] < 2     or startYs[i][j] < 2 \
+            or startXs[i][j] > col-2 or startYs[i][j] > row-2:
                 continue;
             newX, newY = estimateFeatureTranslation(startXs[i][j],\
                                 startYs[i][j], Ix, Iy, img1, img2)
@@ -40,6 +26,7 @@ def estimateAllTranslation(startXs,startYs,img1,img2):
                 
     return newXs, newYs;
 
+# get corresponding point for one feature point
 def estimateFeatureTranslation(startX, startY, Ix, Iy, img1, img2):
     I_gray_1, I_gray_2 = rgb2gray(img1), rgb2gray(img2);
     X_old, Y_old = generatePatch(startX,startY);
@@ -70,6 +57,8 @@ def estimateFeatureTranslation(startX, startY, Ix, Iy, img1, img2):
     
     return newX, newY;
 
+# calculate similarity transformation matrix 
+# get new bbox and new feature points
 def applyGeometricTransformation(startXs, startYs, newXs, newYs, bbox):
     newbbox = np.zeros((bbox.shape),dtype=np.float32);
     dist_thresh = 4;
@@ -99,16 +88,14 @@ def applyGeometricTransformation(startXs, startYs, newXs, newYs, bbox):
         corner_new_temp = tformp.dot(corner_old_temp);
         corner_new = np.matrix.transpose(corner_new_temp[0:2, :]);
         newbbox[f,:,:] = corner_new;
+#        delete bbox outlier
+        box_inlier = (x_new >= newbbox[f,0,0]) *\
+                     (x_new <  newbbox[f,3,0]) *\
+                     (y_new >= newbbox[f,0,1]) *\
+                     (y_new <  newbbox[f,3,1]);
+        x_in_bbox = x_new[box_inlier==True];
+        y_in_bbox = y_new[box_inlier==True];
 #        obtain Xs, Ys
-#        TO DO: delete bbox outlier
-        # x_new = x_new[np.where(x_new[])]
-        # N1 = max(x_old.shape[0], N1);
-        # Xs[0:x_old.size,f:f+1] = x_new.reshape(-1,1);
-        # Ys[0:y_old.size,f:f+1] = y_new.reshape(-1,1);
-        x_in_bbox = x_new[np.where(x_new <= newbbox[f,3,0])] # and x_new >= newbbox[f, 0,0])]
-        x_in_bbox = x_new[np.where(x_new >= newbbox[f,0,0])] # and x_new >= newbbox[f, 0,0])]
-        y_in_bbox = y_new[np.where(y_new <= newbbox[f,3,1])] # and y_new >= newbbox[f, 0,1])]
-        y_in_bbox = y_new[np.where(y_new >= newbbox[f,0,1])] # and y_new >= newbbox[f, 0,1])]
         N1 = max(x_in_bbox.shape[0], y_in_bbox.shape[0], N1)
         Xs[0:x_in_bbox.size,f:f+1] = x_in_bbox.reshape(-1,1);
         Ys[0:y_in_bbox.size,f:f+1] = y_in_bbox.reshape(-1,1);

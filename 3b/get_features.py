@@ -6,6 +6,7 @@ from helpers import flipChannel
 
 # Method 1:
 # get feature points by processing bbox
+
 def getFeatures(img,bbox):
     num_box = bbox.shape[0];
     res_x_temp = np.zeros((1,num_box),dtype = np.object);
