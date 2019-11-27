@@ -95,4 +95,20 @@ def getBoxPoints(x,y,w,h):
     box_pts[3][1] = y + h;
     return box_pts
 
-
+def resetBox(bbox,last_bbox):
+    for f in range(bbox.shape[0]):
+        cur_row = bbox[f,3,1] - bbox[f,0,1];
+        cur_col = bbox[f,3,0] - bbox[f,0,0];
+        last_row = last_bbox[f,3,1] - last_bbox[f,0,1];
+        last_col = last_bbox[f,3,0] - last_bbox[f,0,0];
+        if cur_row < last_row - 10:
+            bbox[f,0,1] = bbox[f,0,1] - 10;
+            bbox[f,1,1] = bbox[f,1,1] - 10;
+            bbox[f,2,1] = bbox[f,2,1] + 10;
+            bbox[f,3,1] = bbox[f,3,1] + 10;
+        if cur_col < last_col - 10:
+            bbox[f,0,0] = bbox[f,0,0] - 10;
+            bbox[f,1,0] = bbox[f,1,0] - 10;
+            bbox[f,2,0] = bbox[f,2,0] + 10;
+            bbox[f,3,0] = bbox[f,3,0] + 10;
+    return bbox;
