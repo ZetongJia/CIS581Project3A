@@ -83,6 +83,8 @@ def applyGeometricTransformation(startXs, startYs, newXs, newYs, bbox):
         coor_new = np.vstack((x_new,y_new));
         tform = tf.estimate_transform('similarity', coor_old.T, coor_new.T);
         tformp = np.asmatrix(tform.params);
+        # if (np.any(np.isnan(tformp))): 
+        #     return None, None, None
 #        transform
         corner_old_temp = np.vstack((bbox[f,:,:].T,np.ones(4,dtype = np.int32)));
         corner_new_temp = tformp.dot(corner_old_temp);
