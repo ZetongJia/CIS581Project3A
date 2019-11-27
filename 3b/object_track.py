@@ -22,7 +22,10 @@ def objectTracking(rawVideo):
             int(cap.get(cv.CAP_PROP_FRAME_HEIGHT)));
     out = cv.VideoWriter(trackVideo, fourcc, fps, size);
 #    other initial settings
-    max_object = 1;
+    if rawVideo == 'Easy.mp4':
+        max_object = 2;
+    else:
+        max_object = 1;
     frame_cnt = 0;
     bbox = np.zeros((max_object,4,2),dtype = np.int32); 
     trace_x = list();
@@ -56,7 +59,7 @@ def objectTracking(rawVideo):
                 trace_y.append(feat_y);
 #           process other frames in the video
             else:
-                if rawVideo == 'Medium.mp4':
+                if rawVideo != 'Easy.mp4':
                     if feat_x.shape[0] < 8:
                         feat_x, feat_y = getFeatures(frame, bbox);
                 
@@ -64,7 +67,7 @@ def objectTracking(rawVideo):
                                 flipChannel(last_frame),flipChannel(frame));
                 feat_x,feat_y,bbox = applyGeometricTransformation(feat_x,\
                                                     feat_y,newXs,newYs,bbox);
-                if rawVideo == 'Medium.mp4':
+                if rawVideo != 'Easy.mp4':
                     bbox = resetBox(bbox, last_bbox);
                 last_frame, last_bbox = frame, bbox;
                 

@@ -7,7 +7,7 @@
 1. Code: 
    1. Simply run ***optical_flow_test_script.py*** to obtain result videos.
 
-      The first frame will pop up for users to select the objects of interest, where users should use the mouse to select several rectangle areas (currently two objects) and press whichever button on the keyboard to view the tracking process. 
+      The first frame will pop up for users to select the objects of interest, where users should use the mouse to select several rectangle areas (currently two objects for **"Easy.mp4"** and one for **"Medium.mp4"**) and press whichever button on the keyboard to view the tracking process. 
 
       Window **"trace"** shows  current boxes and all features points.
 
@@ -30,6 +30,8 @@
    4. ***object_track.py*** reads all frames in the input video and generate the output video with updated bounding boxes and all trace points. 
 
       We discard every nan box, which usually means a feature has already moved out of the image.
+
+      For **"Medium.mp4"**, we invoke `getFeatures()` if feature points is fewer than 8. We also increase x (y) length of a bounding box by 20 if this box's x(y) length is shorter than last bounding box minus 10 so that we can keep the bounding box's area as long as possible. 
 
    5. ***helpers.py*** contains several tool functions.	
 2. Input Videos
